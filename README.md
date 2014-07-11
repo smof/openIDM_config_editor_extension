@@ -6,6 +6,7 @@ is in no way an officially supported tool, simply a community contribution.  Use
 <br/>
 <b>Installation</b>
 <br/>
+<br/>
 Copy both the config.html and config.js into the ../openidm/ui/extension/templates directory of your OpenIDM installation.  To access the UI, simply navigate to ../openidm/templates/config.html.  You need to be already logged into your OpenIDM instance as the app relies on an active
 cookie.
 <br/>
