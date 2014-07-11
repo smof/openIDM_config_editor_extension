@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+	
+		<meta charset="UTF-8">
+	
+		<title>OpenIDM Configuration Editor Extension</title>
+	
+		<!-- Default CSS -->
+		<style type="text/css">
+				
+				html,
+				body {
+				  height: 100%;width: 100%
+				}
+				body {
+				  line-height: 18px;
+				  background-color: #eeeeee;
+				  /** note background is coming from OpenIDM default**/
+				  background-image: url('../images/box-bg.png'); 
+				  background-repeat: no-repeat;
+				  background-position: 950px -100px;
+				  color: #5a646d;
+				  font-size: 14px;
+				  font-family: Arial, Helvetica, sans-serif;
+				}
+				textarea {
+				
+					-moz-border-radius: 5px;
+					border-radius: 5px;
+					padding: 5px 5px 5px 5px;
+					
+				}
+						
+		</style>
+		
+		<!-- Master  JavaScript import-->
+		<script src="config.js"></script>
+		
+		<!-- Wrapper functions -->
+		<script type="text/javascript">
+
+			//Onload
+			function runOnloads() {
+				
+				callGetConnectorList();
+				callGetObjectList();
+
+			}
+		
+			function callGetConfig() {
+				
+				//Work out what was selected...
+				var getConfigSelect = document.getElementById("configSelect");
+				var getConfigSelectedValue = getConfigSelect.options[getConfigSelect.selectedIndex].value;
+				
+				//Default notification
+				if (getConfigSelectedValue == "default") {
+					
+					document.getElementById("configObj").value = "Please select object from drop list to retrieve..."
+					
+				}
+				else {
+				
+					//Sent to REST call and prettify response
+					var getConfigResponse = JSON.stringify(JSON.parse(getConfig(getConfigSelectedValue)), null, '\t');
+					//Update page
+					document.getElementById("configObj").value = getConfigResponse;
+				}
+					
+			};
+
+			
+			//POSTS canvas content to OpenIDM
+			function callSetConfig() {
+			
+				//Work out what was selected and use this as the return obj name...
+				var setConfigSelect = document.getElementById("configSelect");
+				var setConfigSelectedValue = setConfigSelect.options[setConfigSelect.selectedIndex].value;
+				
+				//Get the edited object
+				var configObjToSave = document.getElementById("configObj").value;
+										
+				//Send to setConfig function
+				var setConfigResponse = setConfig(setConfigSelectedValue,configObjToSave);
+				//Update UI with response
+				document.getElementById("saveResponse").innerHTML = setConfigResponse;
+				//document.getElementById("saveResponse").innerHTML = configObjToSave;
+			}
+			
+			//Cleans up
+			function callReset() {
+				
+				document.getElementById("saveResponse").value = "";
+				document.getElementById("configObj").value = ""
+				//document.getElementById("customTextArea").value = "";
+				document.getElementById("configSelect").options.selectedIndex = 0;
+				document.getElementById("connectorSelect").options.selectedIndex = 0;
+				
+			}
+	
+			//Runs onload to populate the list of currently installed connectors
+			function callGetConnectorList() {
+				
+				document.getElementById("connectorSelect").innerHTML = getConnectorList();
+				
+			}
+			
+			//Runs onload to populate the list of currently installed connectors
+			function callGetObjectList() {
+				
+				document.getElementById("configSelect").innerHTML = getConfigList();
+				
+			}
+			
+			//Retrieves connector configuration template
+			function callGetConnectorConfig() {
+				
+				//Get selected via dropdown
+				var connectorSelect = document.getElementById("connectorSelect");
+				var connectorSelectedIndex = connectorSelect.options[connectorSelect.selectedIndex].value;
+				
+				if (connectorSelectedIndex == "default") {
+					
+					document.getElementById("configObj").value = "Please select a template to retrieve..."
+						
+				} else {
+					
+					//Update page
+					document.getElementById("configObj").value = JSON.stringify(getConnectorConfig(connectorSelectedIndex), null, '\t');	
+					
+				}
+				
+			}
+			
+			//Validate the syntax(not schema...) of the object canvas before saving
+			function callValidateJSON() {
+				
+				var canvasJSON = document.getElementById("configObj").value;
+				document.getElementById("saveResponse").value = validateJSON(canvasJSON);
+				
+			}
+			
+			//Calls the createConnector function
+			function callVerifyConnector() {
+				
+				var connectorToVerify = document.getElementById("configObj").value;
+				document.getElementById("saveResponse").value = JSON.stringify(verifyConnector(connectorToVerify), null, '\t');
+				
+			}
+			
+		</script>
+	
+	</head>
+	
+	<!-- Populates the installed connector list page load -->
+	<body onload="runOnloads();">
+	
+		<div id="left" style="float:left; width:450px">
+					To Edit an Existing Configuration Object:
+					<br/>
+					<br/>
+					1) retrieve the object 2) edit in the canvas
+					<br/>
+					3) save object to send back to OpenIDM
+					<table>
+						<tr>
+							<td>
+								<select id="configSelect"></select> <!-- Gets populated dynamically via runLoads() -->		
+							</td>
+							<td>
+									<button type="button" onclick="callGetConfig()">Retrieve</button>
+							</td>
+							<td>
+									<button type="button" onclick="callSetConfig();">Save Object</button>
+							</td>
+						</tr>
+					</table>
+					<br/>
+					<hr/>
+					<br/>
+					To Create a New Connector Object:
+					<br/>
+					<br/>
+					1) retrieve the template; 2) enter system specific details in canvas
+					<br/>
+					3) verify connector 4) save response as provisioner.openicf.json file
+					<table>
+						<tr>
+							<td>
+								<select id="connectorSelect"></select>		
+							</td>
+							<td>
+								<button type="button" onclick="callGetConnectorConfig()">Retrieve</button>
+							</td>
+							<td>
+							<td>
+								<button type="button" onclick="callVerifyConnector()">Verify Connector</button>
+							</td>
+						</tr>
+					</table>
+					<br/>
+					<hr/>
+					<br/>
+					Response Log:
+					<br/>
+					<textarea style="width:440px;height:255px; resize:none" id="saveResponse" readonly></textarea>
+					<br/>
+					<button type="button" onclick="callReset()">Reset All</button>
+					
+					
+		</div>
+	
+		<div id="right" style="float:left; width:800px; padding: 0 0 0 25px">
+			<br/>
+			Object Canvas:
+					
+			<textarea id="configObj" style="white-space:pre; width:750px;height:550px"></textarea>
+			<button type="button" onclick="callValidateJSON();">Check Syntax</button>
+			<span style="font-size:10px">OpenIDM Configuration Editor Extension - Simon Moffatt 2014</span>
+		</div>
+		
+	</body>
+
+</html>
