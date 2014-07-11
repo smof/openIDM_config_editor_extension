@@ -10,4 +10,8 @@ is in no way an officially supported tool, simply a community contribution.  Use
 Copy both the config.html and config.js into the ../openidm/ui/extension/templates directory of your OpenIDM installation.  To access the UI, simply navigate to ../openidm/templates/config.html.  You need to be already logged into your OpenIDM instance as the app relies on an active
 cookie.
 <br/>
+If a 401 Access Denied message is seen, your cookie has expired.  Log back into OpenIDM with admin credentials and navigate back to config.html
+<br/>
 Known issue - the Verify Connector function is incomplete.
+<br/>
+
